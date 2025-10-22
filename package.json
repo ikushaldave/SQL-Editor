@@ -23,9 +23,12 @@
     "examples/*"
   ],
   "scripts": {
+    "prebuild": "pnpm test:all && pnpm type-check",
     "build": "pnpm -r --filter './packages/*' build",
+    "build:force": "pnpm -r --filter './packages/*' build:force",
     "dev": "pnpm -r --parallel --filter './packages/*' dev",
     "test": "jest",
+    "test:all": "pnpm -r --filter './packages/*' test",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "lint": "eslint . --ext .ts,.tsx",
@@ -38,7 +41,8 @@
     "clean": "pnpm -r clean && rm -rf node_modules",
     "changeset": "changeset",
     "version": "changeset version",
-    "release": "pnpm build && changeset publish"
+    "release": "pnpm build && changeset publish",
+    "verify": "pnpm test:all && pnpm type-check && pnpm build"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.1",

@@ -3,7 +3,7 @@
  * @packageDocumentation
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   SchemaRegistry,
   AutocompleteEngine,
@@ -40,6 +40,9 @@ export function useSQLEditor(options: {
   validationOptions?: Partial<ValidationOptions>;
   completionProviders?: CompletionProvider[];
   validators?: Validator[];
+  parserOptions?: {
+    embeddedVariables?: boolean;
+  };
 }): UseSQLEditorReturn {
   const [value, setValue] = useState(options.initialValue || '');
   const [errors, setErrors] = useState<ValidationError[]>([]);
@@ -80,20 +83,29 @@ export function useSQLEditor(options: {
   }, [options.validators]);
 
   // Validation function
-  const validate = () => {
+  const validate = useCallback(() => {
     const result = validatorRef.current.validate(value, schemaRef.current);
     setErrors(result.errors);
-  };
+  }, [value]);
 
   // Auto-validate on value change (if enabled)
   useEffect(() => {
+    const validationEnabled = options.validationOptions?.enabled ?? DEFAULT_VALIDATION_OPTIONS.enabled;
     const shouldValidate =
-      options.validationOptions?.validateOnChange ??
-      DEFAULT_VALIDATION_OPTIONS.validateOnChange;
+      validationEnabled &&
+      (options.validationOptions?.validateOnChange ?? DEFAULT_VALIDATION_OPTIONS.validateOnChange);
 
-    if (shouldValidate && value) {
+    if (!validationEnabled) {
+      // Clear errors when validation is explicitly disabled
+      setErrors([]);
+      return undefined;
+    }
+
+    if (shouldValidate) {
       const timeoutId = setTimeout(() => {
-        validate();
+        // Call validate directly inline to avoid dependency issues
+        const result = validatorRef.current.validate(value, schemaRef.current);
+        setErrors(result.errors);
       }, options.validationOptions?.debounceMs ?? DEFAULT_VALIDATION_OPTIONS.debounceMs);
 
       return () => clearTimeout(timeoutId);

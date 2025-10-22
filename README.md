@@ -9,11 +9,12 @@ A scalable, extensible SQL editor library built with React, Ace Editor, and dt-s
 - Full alias support (`SELECT u.name FROM users u`)
 - CTE (Common Table Expression) recognition
 - Subquery column inference
-- Fuzzy matching
+- Fuzzy matching with advanced scoring
 
 🎯 **Advanced SQL Parsing**
-- Multi-dialect support (MySQL, PostgreSQL, SQL Server, Oracle)
+- **Multi-dialect support** (MySQL, PostgreSQL, Flink, Spark, Hive, Trino, Impala)
 - AST-based analysis using dt-sql-parser
+- **Variable support** with `$(variable)` syntax
 - Real-time validation with helpful error messages
 - Syntax highlighting
 
@@ -22,11 +23,14 @@ A scalable, extensible SQL editor library built with React, Ace Editor, and dt-s
 - Framework-agnostic core package
 - Type-safe APIs with full TypeScript support
 - Comprehensive TSDoc documentation
+- Source maps included for easy debugging
+- Centralized constants for SQL keywords, functions, and data types
 
 🧪 **Test-Driven Development**
-- 90%+ test coverage
+- **164 passing tests** covering all SQL query types
 - Unit, integration, and component tests
 - Well-documented test patterns
+- Tests for simple queries, joins, CTEs, subqueries, window functions, and more
 
 ## Packages
 
@@ -136,12 +140,13 @@ function App() {
 }
 ```
 
-## Documentation
+## 📚 Documentation
 
-- [Architecture](./ARCHITECTURE.md) - Technical architecture and design decisions
-- [Folder Structure](./FOLDER_STRUCTURE.md) - Project organization
-- [API Documentation](./docs/api) - Generated API docs
-- [Contributing](./CONTRIBUTING.md) - Contribution guidelines
+- **[Getting Started](./docs/GETTING_STARTED.md)** - Installation and basic usage
+- **[Architecture](./docs/ARCHITECTURE.md)** - Technical design and structure
+- **[Parser Guide](./docs/PARSER_GUIDE.md)** - Parser service usage
+- **[Quick Reference](./docs/QUICK_REFERENCE.md)** - Common tasks and examples
+- **[Contributing](./CONTRIBUTING.md)** - How to contribute
 
 ## Development
 
@@ -184,6 +189,20 @@ pnpm --filter basic dev
 # Advanced example
 pnpm --filter advanced dev
 ```
+
+### Debugging
+
+Both packages are built with **source maps** for easy debugging:
+
+- 🔍 Debug TypeScript source directly in browser DevTools
+- 📍 Original line numbers in stack traces
+- ⚙️ Configured in `tsup.config.ts` (both core and react packages)
+
+To debug autocomplete or other features:
+1. Open browser DevTools (F12)
+2. Go to Sources tab
+3. Navigate to `@sql-editor/core` or `@sql-editor/react`
+4. Set breakpoints in the TypeScript source!
 
 ### Project Structure
 

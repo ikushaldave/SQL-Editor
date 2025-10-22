@@ -49,6 +49,12 @@ export interface SQLEditorProps {
   /** Custom validators */
   validators?: Validator[];
 
+  /** Parser options */
+  parserOptions?: {
+    /** Enable embedded variables like $(variable) */
+    embeddedVariables?: boolean;
+  };
+
   /** Read-only mode */
   readOnly?: boolean;
 

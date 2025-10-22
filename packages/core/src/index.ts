@@ -7,6 +7,9 @@
 // Export types
 export * from './types';
 
+// Export constants
+export * from './constants';
+
 // Export services
 export { ParserService, detectContext, resolveAlias, VariableHandler } from './parser';
 export { SchemaRegistry } from './schema';

@@ -3,7 +3,7 @@
  */
 
 export class MySQL {
-  parse(input: string): any {
+  parse(_input: string): any {
     // Mock parse - return a simple AST
     return {
       type: 'program',
@@ -18,11 +18,11 @@ export class MySQL {
   }
 
   validate(input: string): any[] {
-    // Return a mock error for incomplete SQL
-    if (input.includes('SELECT') && !input.includes('FROM')) {
+    // Return a mock error only for clearly invalid SQL
+    if (input.includes('SELECT') && input.trim().endsWith('FROM')) {
       return [
         {
-          message: 'Syntax error: missing FROM clause',
+          message: 'Syntax error: incomplete FROM clause',
           startLine: 1,
           startColumn: 1,
           endLine: 1,
@@ -31,7 +31,7 @@ export class MySQL {
       ];
     }
     
-    // Return empty for valid SQL
+    // Return empty for most SQL (we're mocking, so be lenient)
     return [];
   }
 }

@@ -2,14 +2,14 @@
   "name": "@sql-editor/core",
   "version": "0.1.0",
   "description": "Framework-agnostic SQL editor core with intelligent autocomplete",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
     }
   },
   "files": [
@@ -18,8 +18,10 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsup src/index.ts --format esm,cjs --dts --clean",
-    "dev": "tsup src/index.ts --format esm,cjs --dts --watch",
+    "prebuild": "pnpm test && pnpm type-check",
+    "build": "tsup",
+    "build:force": "tsup",
+    "dev": "tsup --watch",
     "test": "jest",
     "test:watch": "jest --watch",
     "type-check": "tsc --noEmit",

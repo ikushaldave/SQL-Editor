@@ -4,11 +4,13 @@
  * @packageDocumentation
  */
 
-import { MySQL } from 'dt-sql-parser';
+import { MySQL, PostgreSQL, FlinkSQL, SparkSQL, HiveSQL, TrinoSQL, ImpalaSQL } from 'dt-sql-parser';
 import type { ParseResult, TableReference, AliasMap } from '../types/sql';
+import type { SQLDialect } from '../types/common';
 import { createLogger } from '../utils/logger';
 import type { Logger } from '../types/plugin';
 import { VariableHandler } from './variable-handler';
+import { SQL_DIALECTS } from '../constants';
 
 /**
  * Parser Service implementation
@@ -26,17 +28,60 @@ import { VariableHandler } from './variable-handler';
  * ```
  */
 export class ParserService {
-  private parser: MySQL;
+  private parser: MySQL | PostgreSQL | FlinkSQL | SparkSQL | HiveSQL | TrinoSQL | ImpalaSQL;
   private logger: Logger;
   private variableHandler: VariableHandler;
   private embeddedVariables: boolean = false;
+  private dialect: SQLDialect;
 
-  constructor() {
+  constructor(dialect: SQLDialect = 'mysql') {
     this.logger = createLogger('ParserService');
     this.variableHandler = new VariableHandler();
+    this.dialect = dialect;
     
-    // Initialize parser - dt-sql-parser 4.3.1 uses MySQL
-    this.parser = new MySQL();
+    // Initialize parser based on dialect
+    this.parser = this.createParser(dialect);
+  }
+
+  /**
+   * Create parser instance based on dialect
+   */
+  private createParser(dialect: SQLDialect): MySQL | PostgreSQL | FlinkSQL | SparkSQL | HiveSQL | TrinoSQL | ImpalaSQL {
+    switch (dialect) {
+      case SQL_DIALECTS.MYSQL:
+        return new MySQL();
+      case SQL_DIALECTS.POSTGRESQL:
+        return new PostgreSQL();
+      case SQL_DIALECTS.FLINK:
+        return new FlinkSQL();
+      case SQL_DIALECTS.SPARK:
+        return new SparkSQL();
+      case SQL_DIALECTS.HIVE:
+        return new HiveSQL();
+      case SQL_DIALECTS.TRINO:
+        return new TrinoSQL();
+      case SQL_DIALECTS.IMPALA:
+        return new ImpalaSQL();
+      default:
+        this.logger.warn(`Unknown dialect: ${dialect}, falling back to MySQL`);
+        return new MySQL();
+    }
+  }
+
+  /**
+   * Get current dialect
+   */
+  getDialect(): SQLDialect {
+    return this.dialect;
+  }
+
+  /**
+   * Set dialect and reinitialize parser
+   */
+  setDialect(dialect: SQLDialect): void {
+    this.dialect = dialect;
+    this.parser = this.createParser(dialect);
+    this.logger.debug(`Dialect changed to: ${dialect}`);
   }
 
   /**
@@ -107,11 +152,25 @@ export class ParserService {
         ) as any;
       }
 
-      // Extract table references and aliases if parsing succeeded
-      if (result.success && ast) {
-        result.tableRefs = this.extractTableRefs(ast);
-        result.aliases = this.extractAliases(result.tableRefs);
+      // Extract table references and aliases
+      // Try AST-based extraction first
+      result.tableRefs = this.extractTableRefs(ast);
+      
+      // Always also try regex fallback and merge results
+      // This ensures we catch tables even if AST traversal misses some
+      const regexTables = this.extractTableRefsFromRegex(sql);
+      
+      // Merge regex results, avoiding duplicates
+      for (const regexTable of regexTables) {
+        const exists = result.tableRefs.find(
+          t => t.name === regexTable.name && t.alias === regexTable.alias
+        );
+        if (!exists) {
+          result.tableRefs.push(regexTable);
+        }
       }
+      
+      result.aliases = this.extractAliases(result.tableRefs);
 
       return result;
     } catch (error) {
@@ -142,7 +201,7 @@ export class ParserService {
       // Handle different AST structures from dt-sql-parser
       if (!ast) return tables;
 
-      // Extract FROM clause tables
+      // Extract FROM clause tables using AST
       this.traverseAST(ast, (node: any) => {
         // Table reference in FROM clause
         if (node.type === 'table' && node.table) {
@@ -169,8 +228,59 @@ export class ParserService {
       return tables;
     } catch (error) {
       this.logger.error('Error extracting table refs:', error);
-      return tables;
+      // Fallback: try to extract table refs using regex if AST fails
+      return this.extractTableRefsFromRegex(this.parser.getParsedInput() || '');
     }
+  }
+
+  /**
+   * Fallback: Extract table references using regex
+   * Used when AST traversal fails
+   */
+  private extractTableRefsFromRegex(sql: string): TableReference[] {
+    const tables: TableReference[] = [];
+    
+    // Match: FROM table_name alias or FROM table_name AS alias
+    // Also handles multi-line
+    const fromPattern = /FROM\s+(\w+)(?:\s+AS\s+(\w+)|\s+(\w+))?/gis;
+    
+    let match;
+    while ((match = fromPattern.exec(sql)) !== null) {
+      const tableName = match[1];
+      const alias = match[2] || match[3]; // AS alias or just alias
+      
+      if (tableName) {
+        const tableRef: TableReference = {
+          name: tableName,
+        };
+        if (alias) {
+          tableRef.alias = alias;
+        }
+        tables.push(tableRef);
+      }
+    }
+    
+    // Match: JOIN table_name alias or JOIN table_name AS alias
+    // Handles INNER JOIN, LEFT JOIN, RIGHT JOIN, etc.
+    const joinPattern = /(?:INNER\s+|LEFT\s+|RIGHT\s+|FULL\s+|CROSS\s+)?JOIN\s+(\w+)(?:\s+AS\s+(\w+)|\s+(\w+))?/gis;
+    
+    while ((match = joinPattern.exec(sql)) !== null) {
+      const tableName = match[1];
+      const alias = match[2] || match[3];
+      
+      // Avoid duplicates
+      if (tableName && !tables.find(t => t.name === tableName && t.alias === alias)) {
+        const tableRef: TableReference = {
+          name: tableName,
+        };
+        if (alias) {
+          tableRef.alias = alias;
+        }
+        tables.push(tableRef);
+      }
+    }
+    
+    return tables;
   }
 
   /**
@@ -261,25 +371,33 @@ export class ParserService {
    *
    * @param node - AST node
    * @param callback - Callback function
+   * @param visited - Set of visited nodes to prevent circular references
    */
-  private traverseAST(node: any, callback: (node: any) => void): void {
+  private traverseAST(node: any, callback: (node: any) => void, visited: Set<any> = new Set()): void {
     if (!node || typeof node !== 'object') return;
+    
+    // Prevent circular references
+    if (visited.has(node)) return;
+    visited.add(node);
 
     callback(node);
 
     // Traverse arrays
     if (Array.isArray(node)) {
       for (const item of node) {
-        this.traverseAST(item, callback);
+        this.traverseAST(item, callback, visited);
       }
       return;
     }
 
-    // Traverse object properties
+    // Traverse object properties (skip certain keys that cause circular refs)
+    const skipKeys = new Set(['parent', 'parentCtx', 'invokingState', '_parent']);
     for (const key of Object.keys(node)) {
+      if (skipKeys.has(key)) continue;
+      
       const value = node[key];
       if (value && typeof value === 'object') {
-        this.traverseAST(value, callback);
+        this.traverseAST(value, callback, visited);
       }
     }
   }

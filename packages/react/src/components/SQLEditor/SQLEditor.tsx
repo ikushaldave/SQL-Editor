@@ -43,6 +43,7 @@ export const SQLEditor: React.FC<SQLEditorProps> = ({
   validation: validationOptions,
   completionProviders,
   validators,
+  parserOptions,
   readOnly = false,
   showLineNumbers = true,
   fontSize = 14,
@@ -56,6 +57,7 @@ export const SQLEditor: React.FC<SQLEditorProps> = ({
   const editorRef = useRef<any>(null);
   const [cursorPosition, setCursorPosition] = useState({ row: 0, column: 0 });
   const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 });
+  const triggerAutocompleteRef = useRef<(() => void) | null>(null);
 
   // Use SQL Editor hook
   const { value: internalValue, onChange: handleInternalChange, schema: schemaRegistry, autocomplete: autocompleteEngine, errors } = useSQLEditor({
@@ -65,6 +67,7 @@ export const SQLEditor: React.FC<SQLEditorProps> = ({
     ...(validationOptions && { validationOptions }),
     ...(completionProviders && { completionProviders }),
     ...(validators && { validators }),
+    ...(parserOptions && { parserOptions }),
   });
 
   // Sync internal value with prop
@@ -88,15 +91,6 @@ export const SQLEditor: React.FC<SQLEditorProps> = ({
     schema: schemaRegistry,
   });
 
-  // Handle value change
-  const handleChange = useCallback(
-    (newValue: string) => {
-      handleInternalChange(newValue);
-      onChange(newValue);
-    },
-    [onChange, handleInternalChange]
-  );
-
   // Handle cursor position change
   const handleCursorChange = useCallback(
     (selection: any) => {
@@ -114,9 +108,20 @@ export const SQLEditor: React.FC<SQLEditorProps> = ({
           top: pos.pageY + lineHeight,
           left: pos.pageX,
         });
+
+        // Auto-trigger autocomplete if after a dot
+        if (autocompleteOptions?.enabled !== false) {
+          const session = editor.getSession();
+          const line = session.getLine(row);
+          const charBefore = line.charAt(column - 1);
+          
+          if (charBefore === '.' && triggerAutocompleteRef.current) {
+            setTimeout(() => triggerAutocompleteRef.current?.(), 100);
+          }
+        }
       }
     },
-    []
+    [autocompleteOptions]
   );
 
   // Trigger autocomplete
@@ -138,6 +143,26 @@ export const SQLEditor: React.FC<SQLEditorProps> = ({
     }
   }, [internalValue, cursorPosition, getSuggestions, showPopup, hidePopup, autocompleteOptions]);
 
+  // Store triggerAutocomplete in ref for use in other callbacks
+  useEffect(() => {
+    triggerAutocompleteRef.current = triggerAutocomplete;
+  }, [triggerAutocomplete]);
+
+  // Handle value change
+  const handleChange = useCallback(
+    (newValue: string) => {
+      handleInternalChange(newValue);
+      onChange(newValue);
+      
+      // Auto-trigger autocomplete on dot
+      const lastChar = newValue.charAt(newValue.length - 1);
+      if (lastChar === '.') {
+        // Small delay to let cursor position update
+        setTimeout(() => triggerAutocomplete(), 50);
+      }
+    },
+    [onChange, handleInternalChange, triggerAutocomplete]
+  );
 
   // Insert completion
   const insertCompletion = useCallback(
@@ -189,10 +214,16 @@ export const SQLEditor: React.FC<SQLEditorProps> = ({
 
   // Set validation markers
   useEffect(() => {
-    if (!editorRef.current || !errors || errors.length === 0) return;
+    if (!editorRef.current) return;
 
     const editor = editorRef.current.editor;
     const session = editor.getSession();
+
+    if (!errors || errors.length === 0) {
+      // Clear annotations when there are no errors
+      session.clearAnnotations();
+      return;
+    }
 
     const annotations = errors.map((error) => ({
       row: error.location?.start.line || 0,

@@ -164,13 +164,13 @@ export class AutocompleteEngine {
     completions: Completion[],
     query: string
   ): Completion[] {
-    if (!query && !this.options.fuzzyMatch) {
-      // No filtering needed, just sort by priority
+    if (!query) {
+      // No query, return all sorted by priority
       return this.sortByPriority(completions);
     }
 
     // Apply fuzzy matching if enabled
-    if (this.options.fuzzyMatch && query) {
+    if (this.options.fuzzyMatch) {
       const withScores = completions.map((completion) => {
         const filterText = completion.filterText || completion.label;
         const score = fuzzyMatch(
@@ -181,7 +181,7 @@ export class AutocompleteEngine {
         return { ...completion, score };
       });
 
-      // Filter out non-matches
+      // Filter out non-matches (keep items with score > 0)
       const filtered = withScores.filter((c) => c.score > 0);
 
       // Sort by score and priority

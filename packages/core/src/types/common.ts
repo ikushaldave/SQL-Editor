@@ -26,7 +26,7 @@ export interface Range {
 /**
  * SQL dialect types
  */
-export type SQLDialect = 'mysql' | 'postgresql' | 'mssql' | 'oracle' | 'generic';
+export type SQLDialect = 'mysql' | 'postgresql' | 'flink' | 'spark' | 'hive' | 'trino' | 'impala';
 
 /**
  * Log levels
