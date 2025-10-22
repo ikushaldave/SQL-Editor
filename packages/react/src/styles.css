@@ -1,0 +1,145 @@
+/* SQL Editor Styles */
+
+/* Completion Popup */
+.sql-completion-popup {
+  position: absolute;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 1000;
+  min-width: 200px;
+  max-width: 400px;
+}
+
+.sql-completion-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background-color 0.15s ease;
+}
+
+.sql-completion-item:hover {
+  background-color: #f3f4f6;
+}
+
+.sql-completion-item.selected {
+  background-color: #3b82f6;
+  color: #ffffff;
+}
+
+.sql-completion-item-label {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.sql-completion-item-detail {
+  font-size: 12px;
+  color: #6b7280;
+  margin-left: 8px;
+}
+
+.sql-completion-item.selected .sql-completion-item-detail {
+  color: #e5e7eb;
+}
+
+.sql-completion-item-type {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background-color: #e5e7eb;
+  color: #374151;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+}
+
+.sql-completion-item.selected .sql-completion-item-type {
+  background-color: #60a5fa;
+  color: #ffffff;
+}
+
+/* Type-specific colors */
+.sql-completion-item-type.table {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.sql-completion-item-type.column {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.sql-completion-item-type.keyword {
+  background-color: #fce7f3;
+  color: #9f1239;
+}
+
+.sql-completion-item-type.function {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.sql-completion-item.selected .sql-completion-item-type.table,
+.sql-completion-item.selected .sql-completion-item-type.column,
+.sql-completion-item.selected .sql-completion-item-type.keyword,
+.sql-completion-item.selected .sql-completion-item-type.function {
+  background-color: #60a5fa;
+  color: #ffffff;
+}
+
+/* SQL Editor Container */
+.sql-editor-container {
+  position: relative;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Error annotations */
+.ace_error {
+  position: absolute;
+  background-color: rgba(239, 68, 68, 0.1);
+  border-bottom: 2px dotted #ef4444;
+}
+
+.ace_warning {
+  position: absolute;
+  background-color: rgba(245, 158, 11, 0.1);
+  border-bottom: 2px dotted #f59e0b;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .sql-completion-popup {
+    background: #1f2937;
+    border-color: #374151;
+  }
+
+  .sql-completion-item:hover {
+    background-color: #374151;
+  }
+
+  .sql-completion-item.selected {
+    background-color: #2563eb;
+  }
+
+  .sql-completion-item-detail {
+    color: #9ca3af;
+  }
+
+  .sql-completion-item-type {
+    background-color: #374151;
+    color: #d1d5db;
+  }
+
+  .sql-editor-container {
+    border-color: #374151;
+  }
+}
+

@@ -1,0 +1,25 @@
+{
+  "name": "sql-editor-example-basic",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Basic SQL Editor example",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@sql-editor/core": "workspace:*",
+    "@sql-editor/react": "workspace:*",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.45",
+    "@types/react-dom": "^18.2.18",
+    "@vitejs/plugin-react": "^4.2.1",
+    "vite": "^5.0.10",
+    "typescript": "^5.3.3"
+  }
+}
+

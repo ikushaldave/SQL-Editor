@@ -1,0 +1,28 @@
+{
+    "entryPoints": [
+        "packages/core/src/index.ts",
+        "packages/react/src/index.ts"
+    ],
+    "out": "docs/api",
+    "exclude": [
+        "**/__tests__/**",
+        "**/*.test.ts",
+        "**/*.test.tsx"
+    ],
+    "excludePrivate": true,
+    "excludeProtected": true,
+    "excludeInternal": true,
+    "readme": "README.md",
+    "name": "SQL Editor",
+    "navigationLinks": {
+        "GitHub": "https://github.com/yourusername/sql-editor"
+    },
+    "plugin": [
+        "typedoc-plugin-markdown"
+    ],
+    "theme": "default",
+    "hideGenerator": true,
+    "sort": [
+        "source-order"
+    ]
+}

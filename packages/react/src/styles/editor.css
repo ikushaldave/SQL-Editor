@@ -1,0 +1,96 @@
+/**
+ * SQL Editor Styles
+ */
+
+.sql-editor-container {
+  position: relative;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
+}
+
+/* Completion Popup */
+.sql-completion-popup {
+  background: #2d2d2d;
+  border: 1px solid #4a4a4a;
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  max-height: 300px;
+  overflow-y: auto;
+  min-width: 250px;
+  z-index: 1000;
+}
+
+.completion-list {
+  padding: 4px 0;
+}
+
+.completion-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  color: #d4d4d4;
+  font-size: 13px;
+}
+
+.completion-item:hover {
+  background-color: #3a3a3a;
+}
+
+.completion-item-selected {
+  background-color: #094771;
+}
+
+.completion-item-selected:hover {
+  background-color: #0d5a8a;
+}
+
+.completion-icon {
+  flex-shrink: 0;
+  font-size: 14px;
+}
+
+.completion-label {
+  flex-grow: 1;
+  font-weight: 500;
+}
+
+.completion-detail {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: #858585;
+  margin-left: auto;
+}
+
+/* Scrollbar styling */
+.sql-completion-popup::-webkit-scrollbar {
+  width: 8px;
+}
+
+.sql-completion-popup::-webkit-scrollbar-track {
+  background: #2d2d2d;
+}
+
+.sql-completion-popup::-webkit-scrollbar-thumb {
+  background: #4a4a4a;
+  border-radius: 4px;
+}
+
+.sql-completion-popup::-webkit-scrollbar-thumb:hover {
+  background: #555555;
+}
+
+/* Error markers */
+.ace_error {
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3QgLChwQUPRGRgAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAAAiSURBVAjXY/j//z8DDMyaNWsZGBgYGP7//8/AwMDw//9/BgArtgYCJXPsHAAAAABJRU5ErkJggg==");
+  background-repeat: repeat-x;
+  background-position: left bottom;
+}
+
+.ace_warning {
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3QgLChwPgZPnrQAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAAApSURBVAjXY/j//z8DOv7//z8DGzNzM8P///8Z/v//D+f8//+fARAzAADd/wBsGRcKOwAAAABJRU5ErkJggg==");
+  background-repeat: repeat-x;
+  background-position: left bottom;
+}
+
